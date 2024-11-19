@@ -36,8 +36,8 @@ jobs:
           rm apk/fate.xapk
       - name: Set Game Version
         run: |
-          version=$(curl -s https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder)
-          echo "VERSION=${version}" >> $GITHUB_ENV
+          $version = Invoke-RestMethod -Uri "https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder"
+          echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
       - name: Decompiling apk
         run: java -jar apktool.jar d apk/fate.apk --output files -f
       - name: Dumping libil2cpp.so from apk

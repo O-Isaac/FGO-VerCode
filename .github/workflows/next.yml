@@ -33,7 +33,7 @@ jobs:
       - name: Merge XAPK into apk
         run: |
           java -jar apkeditor.jar m -i apk/fate.xapk -o apk/fate.apk
-          rm fate.xapk
+          rm apk/fate.xapk
       - name: Set Game Version
         run: |
           version=$(curl -s https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder)

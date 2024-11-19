@@ -1,7 +1,11 @@
-name: Extracting VerCode
+name: Extracting VerCode - Next
 
 on:
   workflow_dispatch:
+  push:
+    branches: [NA]
+  pull_request:
+    branches: [NA]
 
 jobs:
   build:

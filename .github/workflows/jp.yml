@@ -1,32 +1,52 @@
-name: Extracting VerCode - JP
+name: Extracting VerCode
 
 on:
-  push:
-    branches: [JP]
-  pull_request:
-    branches: [JP]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: [3.8]
-
+    permissions:
+      packages: write
+      contents: write
     steps:
-      - name: Install Requeriments
-        run: pip install -r https://raw.githubusercontent.com/O-Isaac/FGO-VerCode/JP/requirements.txt
-
-      - name: Gettings files from Repo
-        uses: actions/checkout@v2
-
-      - name: Execute main script
-        run: python3 main.py
-
-      - name: Commit & push changes to branch NA
-        uses: actions-js/push@master
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
-          force: true
-          branch: "JP"
-          github_token: ${{ secrets.TOKEN_REPO }}
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Download Edit Tools
+        run: |
+           wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O apktool.jar
+           wget https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar -O apkeditor.jar
+           wget https://github.com/O-Isaac/FGO-VCE/releases/download/v1.0.2/FGO-VCE-1.0-SNAPSHOT-jar-with-dependencies.jar -O fgo-vce.jar
+      - name: Download Dump Tools
+        run: |
+          wget https://github.com/Perfare/Il2CppDumper/releases/download/v6.7.40/Il2CppDumper-win-v6.7.40.zip -O dumper.zip
+          unzip dumper.zip -d il2cppdumper
+      - name: Download Game apk
+        run: |
+          mkdir apk
+          wget https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk -O apk/fate.xapk
+      - name: Merge XAPK into apk
+        run: |
+          java -jar apkeditor.jar m -i apk/fate.xapk -o apk/fate.apk
+          rm fate.xapk
+      - name: Set Game Version
+        run: |
+          version=$(curl -s https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder)
+          echo "VERSION=${version}" >> $GITHUB_ENV
+      - name: Decompiling apk
+        run: java -jar apktool.jar d apk/fate.apk --output files -f
+      - name: Dumping libil2cpp.so from apk
+        run: |
+          mkdir decrypt
+          wget https://gist.githubusercontent.com/O-Isaac/feef23001b533bca635d5ba26b2b93c6/raw/config.json -O il2cppdumper/config.json 
+          il2cppdumper/Il2CppDumper.exe files/lib/arm64-v8a/libil2cpp.so files/assets/bin/Data/Managed/Metadata/global-metadata.dat decrypt
+      - name: Get verCode from apk
+        run: |
+          java -jar fgo-vce.jar -s decrypt/stringliteral.json -av ${{ env.VERSION }}
+      - name: Upload app.json
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'app.json'

@@ -70,4 +70,6 @@ jobs:
           pull: '--rebase --autostash'
           add: '${{ matrix.region }}.json'
           default_author: github_actions
+          message: '✨ Update verCode for ${{ matrix.region }} - Commit on ${{ github.run_date }} 🚀'
+
 

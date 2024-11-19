@@ -8,6 +8,17 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        region: 
+          - jp
+          - na
+        version:
+          - https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder
+          - https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder.en
+        game:
+          - https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk
+          - https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.en.xapk
     permissions:
       packages: write
       contents: write
@@ -31,14 +42,14 @@ jobs:
       - name: Download Game apk
         run: |
           mkdir apk
-          Invoke-WebRequest -Uri "https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk" -OutFile "apk\fate.xapk"
+          Invoke-WebRequest -Uri "${{ matrix.game }}" -OutFile "apk\fate.xapk"
       - name: Merge XAPK into apk
         run: |
           java -jar apkeditor.jar m -i apk/fate.xapk -o apk/fate.apk
           rm apk/fate.xapk
       - name: Set Game Version
         run: |
-          $version = Invoke-RestMethod -Uri "https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder"
+          $version = Invoke-RestMethod -Uri "${{ matrix.version }}"
           echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
       - name: Decompiling apk
         run: java -jar apktool.jar d apk/fate.apk --output files -f
@@ -50,7 +61,8 @@ jobs:
       - name: Get verCode from apk
         run: |
           java -jar fgo-vce.jar -s decrypt/stringliteral.json -av ${{ env.VERSION }}
+          Rename-Item -Path "app.json" -NewName "${{ matrix.region }}json"
       - name: Upload app.json
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'app.json'
+          add: '${{ matrix.region }}.json'

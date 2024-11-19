@@ -11,8 +11,8 @@ jobs:
     strategy:
       matrix:
         region: 
-          - jp,https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder,https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk
-          - na,https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder.en,https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.en.xapk
+          - jp,https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk,https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder
+          - na,https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.en.xapk,https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder.en
     permissions:
       packages: write
       contents: write

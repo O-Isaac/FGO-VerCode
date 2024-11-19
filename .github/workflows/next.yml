@@ -12,6 +12,8 @@ jobs:
       packages: write
       contents: write
     steps:
+      - name: Gettings files from Repo
+        uses: actions/checkout@v2
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -47,7 +49,6 @@ jobs:
           il2cppdumper/Il2CppDumper.exe files/lib/arm64-v8a/libil2cpp.so files/assets/bin/Data/Managed/Metadata/global-metadata.dat decrypt
       - name: Get verCode from apk
         run: |
-          git init
           java -jar fgo-vce.jar -s decrypt/stringliteral.json -av ${{ env.VERSION }}
       - name: Upload app.json
         uses: EndBug/add-and-commit@v9

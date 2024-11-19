@@ -69,3 +69,5 @@ jobs:
         with:
           pull: '--rebase --autostash'
           add: '${{ matrix.region }}.json'
+          default_author: github_actions
+

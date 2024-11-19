@@ -62,8 +62,13 @@ jobs:
       - name: Get verCode from apk
         run: |
           java -jar fgo-vce.jar -s decrypt/stringliteral.json -av ${{ env.VERSION }}
-          if (Test-Path "${{ matrix.region }}.json") Remove-Item "${{ matrix.region }}.json" -Force
-          Rename-Item -Path "app.json" -NewName "${{ matrix.region }}.json"
+          $regionFile = "${{ matrix.region }}.json"
+          
+          if (Test-Path $regionFile) {
+              Remove-Item $regionFile -Force
+          }
+
+          Rename-Item -Path "app.json" -NewName $regionFile
       - name: Upload app.json
         uses: EndBug/add-and-commit@v9
         with:

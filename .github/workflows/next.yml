@@ -11,24 +11,21 @@ jobs:
     strategy:
       matrix:
         region: 
-          - jp,https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk,https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder
-          - na,https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.en.xapk,https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder.en
+          - jp
+          - na
+        include:
+         - region: na
+           game: https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.en.xapk
+           version: https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder.en
+         - region: jp
+           game: https://fgo.bigcereal.com/apk/com.aniplex.fategrandorder.xapk
+           version: https://gplay-ver.atlasacademy.workers.dev/?id=com.aniplex.fategrandorder
     permissions:
       packages: write
       contents: write
     steps:
       - name: Gettings files from Repo
         uses: actions/checkout@v2
-      - name: Getting enviroment-variable-from-matrix
-        run: |
-          $matrix_value = "${{ matrix.region }}"
-          $parts = $matrix_value -split ","
-          $region = $parts[0]
-          $game_url = $parts[1]
-          $game_ver_url = $parts[2]
-          echo "REGION=$region" >> $env:GITHUB_ENV
-          echo "GAME_URL=$game_url" >> $env:GITHUB_ENV
-          echo "GAME_VER_URL=$game_ver_url" >> $env:GITHUB_ENV
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -46,14 +43,14 @@ jobs:
       - name: Download Game apk
         run: |
           mkdir apk
-          Invoke-WebRequest -Uri "${{ env.GAME_URL }}" -OutFile "apk\fate.xapk"
+          Invoke-WebRequest -Uri "${{ matrix.game }}" -OutFile "apk\fate.xapk"
       - name: Merge XAPK into apk
         run: |
           java -jar apkeditor.jar m -i apk/fate.xapk -o apk/fate.apk
           rm apk/fate.xapk
       - name: Set Game Version
         run: |
-          $version = Invoke-RestMethod -Uri "${{ env.GAME_VER_URL }}"
+          $version = Invoke-RestMethod -Uri "${{ matrix.version }}"
           echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
       - name: Decompiling apk
         run: java -jar apktool.jar d apk/fate.apk --output files -f
@@ -65,8 +62,9 @@ jobs:
       - name: Get verCode from apk
         run: |
           java -jar fgo-vce.jar -s decrypt/stringliteral.json -av ${{ env.VERSION }}
-          Rename-Item -Path "app.json" -NewName "${{ env.REGION }}.json"
+          Rename-Item -Path "app.json" -NewName "${{ matrix.region }}.json"
       - name: Upload app.json
         uses: EndBug/add-and-commit@v9
         with:
-          add: '${{ env.REGION }}.json'
+          pull: '--rebase --autostash ...'
+          add: '${{ matrix.region }}.json'

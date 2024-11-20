@@ -38,10 +38,6 @@ jobs:
           Invoke-WebRequest -Uri "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar" -OutFile "apktool.jar"
           Invoke-WebRequest -Uri "https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar" -OutFile "apkeditor.jar"
           Invoke-WebRequest -Uri "https://github.com/O-Isaac/FGO-VCE/releases/latest/download/FGO-VCE-1.0-SNAPSHOT-jar-with-dependencies.jar" -OutFile "fgo-vce.jar"
-      - name: Download Dump Tools
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Perfare/Il2CppDumper/releases/download/v6.7.40/Il2CppDumper-win-v6.7.40.zip" -OutFile "dumper.zip"
-          Expand-Archive -Path "dumper.zip" -DestinationPath "il2cppdumper"
       - name: Download Game apk
         run: |
           mkdir apk
@@ -56,14 +52,9 @@ jobs:
           echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
       - name: Decompiling apk
         run: java -jar apktool.jar d apk/fate.apk --output files -f
-      - name: Dumping libil2cpp.so from apk
-        run: |
-          mkdir decrypt
-          Invoke-WebRequest -Uri "https://gist.githubusercontent.com/O-Isaac/feef23001b533bca635d5ba26b2b93c6/raw/config.json" -OutFile "il2cppdumper\config.json"
-          il2cppdumper/Il2CppDumper.exe files/lib/arm64-v8a/libil2cpp.so files/assets/bin/Data/Managed/Metadata/global-metadata.dat decrypt
       - name: Get verCode from apk
         run: |
-          java -jar fgo-vce.jar -s decrypt/stringliteral.json -av ${{ env.VERSION }} -o ${{ matrix.region }}.json
+          java -jar fgo-vce.jar -s files/assets/bin/Data/Managed/Metadata/global-metadata.dat -av ${{ env.VERSION }} -o ${{ matrix.region }}.json
       - name: Set current date
         run:  |
           $date = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ'

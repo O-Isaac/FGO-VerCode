@@ -54,7 +54,7 @@ jobs:
         run: java -jar apktool.jar d apk/fate.apk --output files -f
       - name: Get verCode from apk
         run: |
-          java -jar fgo-vce.jar -s files/assets/bin/Data/Managed/Metadata/global-metadata.dat -av ${{ env.VERSION }} -o ${{ matrix.region }}.json
+          java -jar fgo-vce.jar -g files/assets/bin/Data/Managed/Metadata/global-metadata.dat -av ${{ env.VERSION }} -o ${{ matrix.region }}.json
       - name: Set current date
         run:  |
           $date = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ'

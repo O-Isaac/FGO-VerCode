@@ -8,7 +8,7 @@ on:
     branches: [next]
 
 jobs:
-  build:
+  extract:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -28,10 +28,12 @@ jobs:
     steps:
       - name: Gettings files from Repo
         uses: actions/checkout@v2
+        
       - name: Set Game Version
         run: |
           $version = Invoke-RestMethod -Uri "${{ matrix.version }}"
           echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
+          
       - name: Compare Version with app.json
         run: |
           $appVersion = (Get-Content -Path "${{ matrix.region }}.json" | ConvertFrom-Json).appVer
@@ -43,40 +45,48 @@ jobs:
             echo "Versions don't match. Please update the code. 🔄"
             echo "UPDATE=true" | Out-File -Append -FilePath $env:GITHUB_ENV  # Establece UPDATE como true
           }
+          
       - name: Set up JDK
         if: env.UPDATE == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
+          
       - name: Download Edit Tools
         if: env.UPDATE == 'true'
         run: |
           Invoke-WebRequest -Uri "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar" -OutFile "apktool.jar"
           Invoke-WebRequest -Uri "https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar" -OutFile "apkeditor.jar"
           Invoke-WebRequest -Uri "https://github.com/O-Isaac/FGO-VCE/releases/latest/download/FGO-VCE-1.0-SNAPSHOT-jar-with-dependencies.jar" -OutFile "fgo-vce.jar"
+      
       - name: Download Game apk
         if: env.UPDATE == 'true'
         run: |
           mkdir apk
           Invoke-WebRequest -Uri "${{ matrix.game }}" -OutFile "apk\fate.xapk"
+      
       - name: Merge XAPK into apk
         if: env.UPDATE == 'true'
         run: |
           java -jar apkeditor.jar m -i apk/fate.xapk -o apk/fate.apk
           rm apk/fate.xapk
+     
       - name: Decompiling apk
         if: env.UPDATE == 'true'
         run: java -jar apktool.jar d apk/fate.apk --output files -f
+     
       - name: Get verCode from apk
         if: env.UPDATE == 'true'
         run: |
           java -jar fgo-vce.jar -g files/assets/bin/Data/Managed/Metadata/global-metadata.dat -av ${{ env.VERSION }} -o ${{ matrix.region }}.json
+      
       - name: Set current date
         if: env.UPDATE == 'true'
         run:  |
           $date = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ'
           echo "DATE=$date" >> $env:GITHUB_ENV
+      
       - name: Upload verCode
         if: env.UPDATE == 'true'
         uses: EndBug/add-and-commit@v9

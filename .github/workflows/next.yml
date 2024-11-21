@@ -2,8 +2,8 @@ name: Extracting VerCode - Next
 
 on:
   schedule:
-  - cron: '0 8 * * *'
-  - cron: '19 15 * * *'
+    - cron: '0 8 * * *'
+    - cron: '19 15 * * *'
   push:
     branches: [next]
 
@@ -28,6 +28,21 @@ jobs:
     steps:
       - name: Gettings files from Repo
         uses: actions/checkout@v2
+      - name: Set Game Version
+        run: |
+          $version = Invoke-RestMethod -Uri "${{ matrix.version }}"
+          echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
+      - name: Compare Version with app.json
+        run: |
+          $appVersion = (Get-Content -Path "${{ matrix.region }}.json" | ConvertFrom-Json).version
+          $envVersion = $env:VERSION
+          
+          if ($appVersion -eq $envVersion) {
+            echo "Versions match! No need to update the code. ✅"
+            exit 0
+          } else {
+            echo "Versions don't match. Please update the code. 🔄"
+          }
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -46,10 +61,6 @@ jobs:
         run: |
           java -jar apkeditor.jar m -i apk/fate.xapk -o apk/fate.apk
           rm apk/fate.xapk
-      - name: Set Game Version
-        run: |
-          $version = Invoke-RestMethod -Uri "${{ matrix.version }}"
-          echo "VERSION=$version" | Out-File -Append -FilePath $env:GITHUB_ENV
       - name: Decompiling apk
         run: java -jar apktool.jar d apk/fate.apk --output files -f
       - name: Get verCode from apk

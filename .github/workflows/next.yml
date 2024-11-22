@@ -2,6 +2,7 @@ name: Extracting VerCode - Next
 
 on:
   schedule:
+    - cron: '*/5 * * * *' # for testing
     - cron: '0 8 * * *'
     - cron: '19 15 * * *'
   push:

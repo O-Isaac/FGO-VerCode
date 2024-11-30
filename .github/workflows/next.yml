@@ -1,5 +1,4 @@
 name: Extracting VerCode - Next
-
 on:
   workflow_dispatch:
   schedule:

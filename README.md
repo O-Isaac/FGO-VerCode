@@ -7,4 +7,4 @@ This tools i've created to extract verCode by searching sha256 hash in stringlit
 https://github.com/O-Isaac/FGO-VCE
 
 # Roadmap
-- Generate to app.json `app.na.json` & `app.jp.json`
+- [x] Generate to app.json `app.na.json` & `app.jp.json`
